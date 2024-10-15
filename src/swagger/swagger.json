@@ -1,0 +1,176 @@
+{
+	"openapi": "3.0.0",
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"Recipe": {
+				"properties": {
+					"dishName": {
+						"type": "string"
+					},
+					"ingredients": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"instructions": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"dishName",
+					"ingredients",
+					"instructions"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"GenerateRecipeRequest": {
+				"properties": {
+					"ingredients": {
+						"type": "string"
+					},
+					"numberOfDishes": {
+						"type": "number",
+						"format": "double"
+					},
+					"numberOfSoups": {
+						"type": "number",
+						"format": "double"
+					},
+					"type": {
+						"type": "string"
+					},
+					"desert": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"ingredients",
+					"numberOfDishes",
+					"numberOfSoups",
+					"type",
+					"desert"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Photo": {
+				"properties": {
+					"original": {
+						"type": "string"
+					},
+					"queryString": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"original",
+					"queryString"
+				],
+				"type": "object",
+				"additionalProperties": false
+			}
+		},
+		"securitySchemes": {}
+	},
+	"info": {
+		"title": "recipeai-backend",
+		"version": "1.0.0",
+		"description": "RecipeAI 後端服務",
+		"license": {
+			"name": "MIT"
+		},
+		"contact": {
+			"name": "Allen"
+		}
+	},
+	"paths": {
+		"/recipe/generateRecipe": {
+			"post": {
+				"operationId": "GenerateRecipe",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/Recipe"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Recipe"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GenerateRecipeRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/photo/dishPhoto/{dishName}": {
+			"get": {
+				"operationId": "GetPhotoByDishName",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/Photo"
+										},
+										{
+											"type": "string"
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Photo"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "dishName",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	]
+}

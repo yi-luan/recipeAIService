@@ -1,0 +1,23 @@
+{
+	"entryFile": "src/main.ts",
+	"noImplicitAdditionalProperties": "throw-on-extras",
+	"controllerPathGlobs": ["src/**/*Controller.ts"],
+	"spec": {
+		"outputDirectory": "src/swagger",
+		"specVersion": 3
+	},
+	"routes": {
+		"routesDir": "src"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:3008",
+			"description": "本地開發伺服器",
+			"variables": {
+				"port": {
+					"default": "3001"
+				}
+			}
+		}
+	]
+}
