@@ -9,7 +9,5 @@
 		"resolveJsonModule": true,
 		"outDir": "./dist",
 		"rootDir": "./src"
-	},
-	"include": ["src/**/*"],
-	"exclude": ["node_modules"]
+	}
 }
