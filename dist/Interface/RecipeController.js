@@ -103,8 +103,6 @@ let RecipeController = class RecipeController {
                         .replace('```', '')
                         .replace(/```json\n?|\n?```/g, '')
                         .trim();
-                    console_1.default.log('cleanedText');
-                    console_1.default.log(cleanedText);
                     response = JSON.parse(cleanedText);
                 }
                 catch (parseError) {

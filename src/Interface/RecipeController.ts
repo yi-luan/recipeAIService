@@ -86,8 +86,6 @@ export class RecipeController {
 					.replace('```', '')
 					.replace(/```json\n?|\n?```/g, '')
 					.trim();
-				console.log('cleanedText');
-				console.log(cleanedText);
 				response = JSON.parse(cleanedText) as Recipe[];
 			} catch (parseError) {
 				console.error('無法解析生成的文本為 JSON:', parseError);
