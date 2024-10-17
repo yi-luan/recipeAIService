@@ -5,7 +5,7 @@
 	"main": "src/main.ts",
 	"scripts": {
 		"start": "cross-env PORT=3001 node dist/main.js",
-		"dev": "tsoa spec-and-routes && tsc && nodemon --exec \"node -r dotenv/config --inspect\" dist/main.js",
+        "dev": "tsoa spec-and-routes && tsc && nodemon --exec \"node -r dotenv/config --inspect\" dist/main.js",
 		"build": "npx tsoa spec-and-routes && tsc",
 		"lint": "eslint . --ext .ts",
 		"test": "jest",
