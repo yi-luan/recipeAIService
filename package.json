@@ -6,12 +6,12 @@
 	"scripts": {
 		"start": "cross-env PORT=3001 node dist/main.js",
 		"dev": "tsoa spec-and-routes && tsc && nodemon --exec \"node -r dotenv/config --inspect\" dist/main.js",
-		"build": "node ./node_modules/.bin/tsoa spec-and-routes && tsc",
+		"build": "npx tsoa spec-and-routes && tsc",
 		"lint": "eslint . --ext .ts",
 		"test": "jest",
 		"typecheck": "tsc --noEmit",
 		"format": "prettier --write \"src/**/*.ts\"",
-		"tsoa": "node ./node_modules/.bin/tsoa spec-and-routes"
+		"tsoa": "npx tsoa spec-and-routes"
 	},
 	"dependencies": {
 		"@google/generative-ai": "^0.21.0",
