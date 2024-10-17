@@ -4,6 +4,7 @@
 	"description": "RecipeAI 後端服務",
 	"main": "src/main.ts",
 	"scripts": {
+		"postinstall": "chmod +x node_modules/.bin/tsoa",
 		"start": "cross-env PORT=3001 node dist/main.js",
 		"dev": "tsoa spec-and-routes && tsc && nodemon --exec \"node -r dotenv/config --inspect\" dist/main.js",
 		"build": "npx tsoa spec-and-routes && tsc",
