@@ -16,15 +16,6 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-app.use((req, res, next) => {
-	res.setHeader(
-		'Content-Security-Policy',
-		"default-src 'self' https://vercel.live; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://vercel.live; font-src 'self' data:; frame-src 'self' https://vercel.live;"
-	);
-	next();
-});
-
 // 路由
 app.use('/api', userRoutes);
 
