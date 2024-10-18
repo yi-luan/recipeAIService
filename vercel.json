@@ -9,7 +9,7 @@
 	"routes": [
 		{
 			"src": "/(.*)",
-			"dest": "/dist/main.js",
+			"dest": "dist/main.js",
 			"headers": {
 				"Content-Security-Policy": "default-src 'self' https://vercel.live; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://vercel.live; font-src 'self' data:; frame-src 'self' https://vercel.live;"
 			}
