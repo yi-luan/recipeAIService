@@ -30,34 +30,61 @@ let PhotoController = class PhotoController {
     constructor() {
         this.serpApiKey = process_1.default.env.SerpApi_API_Key;
         this.serpApiDomain = process_1.default.env.SerpApi_GoogleSearch_Domain;
+        this.flickrApiKey = process_1.default.env.Flickr_API_Key;
     }
+    // @Get('/dishPhoto/{dishName}')
+    // async getPhotoByDishName(dishName: string): Promise<Photo | string> {
+    // 	console.log('接收到的 dishName:', dishName);
+    // 	const encodedDishName = encodeURIComponent(dishName);
+    // 	const url = `${this.serpApiDomain}&q=${encodedDishName}&api_key=${this.serpApiKey}`;
+    // 	console.log('請求 URL:', url);
+    // 	try {
+    // 		const response = await axios.get(url);
+    // 		const imagesResults = response.data.images_results as Photo[];
+    // 		if (imagesResults && imagesResults.length > 0) {
+    // 			const randomIndex = Math.floor(Math.random() * 10) + 1;
+    // 			return imagesResults[randomIndex].original;
+    // 		} else {
+    // 			console.log('未找到相關圖片');
+    // 			return '';
+    // 		}
+    // 	} catch (error) {
+    // 		if (axios.isAxiosError(error)) {
+    // 			console.error('獲取圖片時發生錯誤:', error.response?.data);
+    // 		} else {
+    // 			console.error('獲取圖片時發生未知錯誤:', error);
+    // 		}
+    // 		throw error;
+    // 	}
+    // }
     getPhotoByDishName(dishName) {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            console_1.default.log('接收到的 dishName:', dishName);
-            const encodedDishName = encodeURIComponent(dishName);
-            const url = `${this.serpApiDomain}&q=${encodedDishName}&api_key=${this.serpApiKey}`;
-            console_1.default.log('請求 URL:', url);
             try {
-                const response = yield axios_1.default.get(url);
-                const imagesResults = response.data.images_results;
-                if (imagesResults && imagesResults.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * 10) + 1;
-                    return imagesResults[randomIndex].original;
+                const encodedDishName = encodeURIComponent(dishName);
+                const url = `https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=${this.flickrApiKey}&text=${encodedDishName}&format=json&nojsoncallback=1&per_page=10`;
+                const response = yield axios_1.default.get(url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        Accept: 'application/json, text/plain, */*',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        Referer: 'https://www.flickr.com/',
+                    },
+                });
+                if (response.data.photos &&
+                    response.data.photos.photo &&
+                    response.data.photos.photo.length > 0) {
+                    console_1.default.log('圖片網址:', response.data.photos.photo);
+                    const photo = response.data.photos.photo[0];
+                    const photoUrl = `https://live.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}.jpg`;
+                    return { original: photoUrl, queryString: dishName };
                 }
                 else {
-                    console_1.default.log('未找到相關圖片');
-                    return '';
+                    return null;
                 }
             }
             catch (error) {
-                if (axios_1.default.isAxiosError(error)) {
-                    console_1.default.error('獲取圖片時發生錯誤:', (_a = error.response) === null || _a === void 0 ? void 0 : _a.data);
-                }
-                else {
-                    console_1.default.error('獲取圖片時發生未知錯誤:', error);
-                }
-                throw error;
+                console_1.default.error('Error fetching photo from Flickr:', error);
+                return null;
             }
         });
     }

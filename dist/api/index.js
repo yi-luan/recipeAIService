@@ -38,35 +38,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
-const node_console_1 = __importDefault(require("node:console"));
-const node_process_1 = __importDefault(require("node:process"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
-const errorHandler_1 = __importDefault(require("./middleware/errorHandler"));
-const userRoutes_1 = __importDefault(require("./route/userRoutes"));
-const routes_1 = require("./routes");
+const errorHandler_1 = __importDefault(require("../src/middleware/errorHandler"));
+const userRoutes_1 = __importDefault(require("../src/route/userRoutes"));
+const routes_1 = require("../src/routes");
+const swagger_json_1 = __importDefault(require("../src/swagger/swagger.json"));
 const app = (0, express_1.default)();
-const port = node_process_1.default.env.PORT || 3001;
 // 全局中間件
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: true }));
-app.use((req, res, next) => {
-    res.setHeader('Content-Security-Policy', "default-src 'self' https://vercel.live; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://vercel.live; font-src 'self' data:; frame-src 'self' https://vercel.live;");
-    next();
-});
 // 路由
 app.use('/api', userRoutes_1.default);
 // 錯誤處理中間件
 app.use(errorHandler_1.default);
 // 提供 Swagger UI
 app.use('/docs', swagger_ui_express_1.default.serve, (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    return res.send(swagger_ui_express_1.default.generateHTML(yield Promise.resolve().then(() => __importStar(require('./swagger/swagger.json')))));
+    return res.send(swagger_ui_express_1.default.generateHTML(yield Promise.resolve().then(() => __importStar(require('../src/swagger/swagger.json')))));
 }));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-app.listen(port, () => {
-    node_console_1.default.log(`服務器運行在 http://localhost:${port}`);
-    node_console_1.default.log(`Swagger 文檔可在 http://localhost:${port}/docs 查看`);
-});
+app.use('/docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_json_1.default));
 // 使用生成的路由
 (0, routes_1.RegisterRoutes)(app);
+app.get('/', (req, res) => {
+    res.send('Hello from RecipeAI API!');
+});
+exports.default = app;
