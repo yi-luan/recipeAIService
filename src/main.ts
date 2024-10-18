@@ -2,6 +2,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
 
+import helmet from 'helmet';
 import console from 'node:console';
 import process from 'node:process';
 import swaggerUi from 'swagger-ui-express';
@@ -17,13 +18,17 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-	res.setHeader(
-		'Content-Security-Policy',
-		"default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://vercel.live;"
-	);
-	next();
-});
+app.use(
+	helmet.contentSecurityPolicy({
+		directives: {
+			defaultSrc: ["'self'"],
+			scriptSrc: ["'self'", "'unsafe-inline'", 'https://vercel.live'],
+			styleSrc: ["'self'", "'unsafe-inline'"],
+			imgSrc: ["'self'", 'data:', 'https:'],
+			connectSrc: ["'self'", 'https://vercel.live'],
+		},
+	})
+);
 
 // 路由
 app.use('/api', userRoutes);
