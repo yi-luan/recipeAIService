@@ -38,6 +38,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
+const helmet_1 = __importDefault(require("helmet"));
 const node_console_1 = __importDefault(require("node:console"));
 const node_process_1 = __importDefault(require("node:process"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
@@ -50,6 +51,19 @@ const port = node_process_1.default.env.PORT || 3001;
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: true }));
+app.use(helmet_1.default.contentSecurityPolicy({
+    directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", 'https://vercel.live'],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", 'https://vercel.live'],
+    },
+}));
+app.use((req, res, next) => {
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live; connect-src 'self' https://vercel.live;");
+    next();
+});
 // 路由
 app.use('/api', userRoutes_1.default);
 // 錯誤處理中間件

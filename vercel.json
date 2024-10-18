@@ -1,10 +1,18 @@
 {
 	"version": 2,
-	"routes": [{ "src": "(.*)", "dest": "/dist/main.js" }],
-	"rewrites": [
+	"builds": [
 		{
-			"source": "/(.*)",
-			"destination": "/dist/main.js"
+			"src": "dist/main.js",
+			"use": "@vercel/node"
+		}
+	],
+	"routes": [
+		{
+			"src": "/(.*)",
+			"dest": "/dist/main.js",
+			"headers": {
+				"Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live; connect-src 'self' https://vercel.live;"
+			}
 		}
 	]
 }
