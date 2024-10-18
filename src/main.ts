@@ -30,6 +30,14 @@ app.use(
 	})
 );
 
+app.use((req, res, next) => {
+	res.setHeader(
+		'Content-Security-Policy',
+		"default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live; connect-src 'self' https://vercel.live;"
+	);
+	next();
+});
+
 // 路由
 app.use('/api', userRoutes);
 
