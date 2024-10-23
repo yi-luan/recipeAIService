@@ -29,10 +29,12 @@ export class PhotoController {
 
 		try {
 			const response = await this.makeRequestWithRetry(url);
-			const imagesResults = response.data.items.map((x: any) => ({
-				original: x.link,
-				queryString: dishName,
-			}));
+			const imagesResults = response.data.items
+				.filter((x: any) => x.link.toLowerCase().endsWith('.jpg'))
+				.map((x: any) => ({
+					original: x.link,
+					queryString: dishName,
+				}));
 
 			if (imagesResults && imagesResults.length > 0) {
 				const randomIndex = Math.floor(Math.random() * Math.min(10, imagesResults.length));
@@ -75,6 +77,6 @@ export class PhotoController {
 	}
 
 	private getDefaultImageUrl(): string {
-		return 'https://example.com/default-dish-image.jpg'; // 替換為您的默認圖片 URL
+		return 'https://www.bowcity.com.tw/images/nopic.jpg'; // 替換為您的默認圖片 URL
 	}
 }

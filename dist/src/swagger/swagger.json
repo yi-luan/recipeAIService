@@ -62,22 +62,6 @@
                 ],
                 "type": "object",
                 "additionalProperties": false
-            },
-            "Photo": {
-                "properties": {
-                    "original": {
-                        "type": "string"
-                    },
-                    "queryString": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "original",
-                    "queryString"
-                ],
-                "type": "object",
-                "additionalProperties": false
             }
         },
         "securitySchemes": {}
@@ -138,14 +122,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "anyOf": [
-                                        {
-                                            "$ref": "#/components/schemas/Photo"
-                                        },
-                                        {
-                                            "type": "string"
-                                        }
-                                    ]
+                                    "type": "string"
                                 }
                             }
                         }

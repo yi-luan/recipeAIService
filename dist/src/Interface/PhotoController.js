@@ -25,89 +25,76 @@ exports.PhotoController = void 0;
 const axios_1 = __importDefault(require("axios"));
 const console_1 = __importDefault(require("console"));
 const process_1 = __importDefault(require("process"));
+const timers_1 = require("timers");
 const tsoa_1 = require("tsoa");
 let PhotoController = class PhotoController {
     constructor() {
-        this.serpApiKey = process_1.default.env.SerpApi_API_Key;
-        this.serpApiDomain = process_1.default.env.SerpApi_GoogleSearch_Domain;
-        this.flickrApiKey = process_1.default.env.Flickr_API_Key;
-        this.googleSearchApiKey = process_1.default.env.Google_Search_API_Key;
-        this.googleSearchEngineId = process_1.default.env.SearchEngineId;
-        this.googleSearchDomain = process_1.default.env.GooogleSearchDomain;
+        this.googleSearchApiKey = process_1.default.env.Google_Search_API_Key || '';
+        this.googleSearchEngineId = process_1.default.env.SearchEngineId || '';
+        this.googleSearchDomain = process_1.default.env.GooogleSearchDomain || '';
+        if (!this.googleSearchApiKey || !this.googleSearchEngineId || !this.googleSearchDomain) {
+            console_1.default.error('缺少必要的環境變量設置');
+        }
     }
-    // @Get('/dishPhoto/{dishName}')
-    // async getPhotoByDishName(dishName: string): Promise<Photo | string> {
-    // 	console.log('接收到的 dishName:', dishName);
-    // 	const encodedDishName = encodeURIComponent(dishName);
-    // 	const url = `${this.serpApiDomain}&q=${encodedDishName}&api_key=${this.serpApiKey}`;
-    // 	console.log('請求 URL:', url);
-    // 	try {
-    // 		const response = await axios.get(url, {
-    // 			headers: {
-    // 				'User-Agent':
-    // 					'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    // 				Accept: 'application/json, text/plain, */*',
-    // 				'Accept-Language': 'en-US,en;q=0.9',
-    // 				Referer: 'https://www.flickr.com/',
-    // 			},
-    // 		});
-    // 		const imagesResults = response.data.images_results as Photo[];
-    // 		if (imagesResults && imagesResults.length > 0) {
-    // 			const randomIndex = Math.floor(Math.random() * 10) + 1;
-    // 			return imagesResults[randomIndex].original;
-    // 		} else {
-    // 			console.log('未找到相關圖片');
-    // 			return '';
-    // 		}
-    // 	} catch (error) {
-    // 		if (axios.isAxiosError(error)) {
-    // 			console.error('獲取圖片時發生錯誤:', error.response?.data);
-    // 		} else {
-    // 			console.error('獲取圖片時發生未知錯誤:', error);
-    // 		}
-    // 		throw error;
-    // 	}
-    // }
     getPhotoByDishName(dishName) {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             console_1.default.log('接收到的 dishName:', dishName);
-            const encodedDishName = encodeURIComponent(dishName);
+            const encodedDishName = encodeURIComponent(dishName.trim());
             const url = `${this.googleSearchDomain}?key=${this.googleSearchApiKey}&cx=${this.googleSearchEngineId}&q=${encodedDishName}&searchType=image`;
             try {
-                const response = yield axios_1.default.get(url, {
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                        Accept: 'application/json, text/plain, */*',
-                        'Accept-Language': 'en-US,en;q=0.9',
-                        Referer: 'https://www.googleapis.com/',
-                    },
-                });
-                const imagesResults = response.data.items.map((x) => {
-                    return {
-                        original: x.link,
-                        queryString: dishName,
-                    };
-                });
+                const response = yield this.makeRequestWithRetry(url);
+                const imagesResults = response.data.items
+                    .filter((x) => x.link.toLowerCase().endsWith('.jpg'))
+                    .map((x) => ({
+                    original: x.link,
+                    queryString: dishName,
+                }));
                 if (imagesResults && imagesResults.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * 10) + 1;
+                    const randomIndex = Math.floor(Math.random() * Math.min(10, imagesResults.length));
                     return imagesResults[randomIndex].original;
                 }
                 else {
                     console_1.default.log('未找到相關圖片');
-                    return '';
+                    return this.getDefaultImageUrl();
                 }
             }
             catch (error) {
-                if (axios_1.default.isAxiosError(error)) {
-                    console_1.default.error('獲取圖片時發生錯誤:', (_a = error.response) === null || _a === void 0 ? void 0 : _a.data);
-                }
-                else {
-                    console_1.default.error('獲取圖片時發生未知錯誤:', error);
-                }
-                throw error;
+                console_1.default.error('獲取圖片時發生錯誤:', error);
+                return this.getDefaultImageUrl();
             }
         });
+    }
+    makeRequestWithRetry(url, retries = 3) {
+        return __awaiter(this, void 0, void 0, function* () {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    return yield axios_1.default.get(url, {
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                            Accept: 'application/json, text/plain, */*',
+                            'Accept-Language': 'en-US,en;q=0.9',
+                            Referer: 'https://www.googleapis.com/',
+                        },
+                        timeout: 5000, // 5 seconds timeout
+                    });
+                }
+                catch (error) {
+                    if (i === retries - 1)
+                        throw error;
+                    if (axios_1.default.isAxiosError(error)) {
+                        const axiosError = error;
+                        if (axiosError.response && axiosError.response.status === 429) {
+                            // Rate limit exceeded, wait before retrying
+                            yield new Promise((resolve) => (0, timers_1.setTimeout)(resolve, 2000));
+                        }
+                    }
+                    console_1.default.warn(`請求失敗，正在重試 (${i + 1}/${retries})...`);
+                }
+            }
+        });
+    }
+    getDefaultImageUrl() {
+        return 'https://www.bowcity.com.tw/images/nopic.jpg'; // 替換為您的默認圖片 URL
     }
 };
 __decorate([
