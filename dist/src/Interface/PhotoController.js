@@ -24,6 +24,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PhotoController = void 0;
 const axios_1 = __importDefault(require("axios"));
 const console_1 = __importDefault(require("console"));
+const node_cache_1 = __importDefault(require("node-cache"));
 const process_1 = __importDefault(require("process"));
 const timers_1 = require("timers");
 const tsoa_1 = require("tsoa");
@@ -32,6 +33,8 @@ let PhotoController = class PhotoController {
         this.googleSearchApiKey = process_1.default.env.Google_Search_API_Key || '';
         this.googleSearchEngineId = process_1.default.env.SearchEngineId || '';
         this.googleSearchDomain = process_1.default.env.GooogleSearchDomain || '';
+        this.cache = new node_cache_1.default({ stdTTL: 3600 }); // 緩存 1 小時
+        this.requestQueue = Promise.resolve();
         if (!this.googleSearchApiKey || !this.googleSearchEngineId || !this.googleSearchDomain) {
             console_1.default.error('缺少必要的環境變量設置');
         }
@@ -39,8 +42,31 @@ let PhotoController = class PhotoController {
     getPhotoByDishName(dishName) {
         return __awaiter(this, void 0, void 0, function* () {
             console_1.default.log('接收到的 dishName:', dishName);
+            // 檢查緩存
+            const cachedResult = this.cache.get(dishName);
+            if (cachedResult) {
+                console_1.default.log('從緩存返回結果:', dishName);
+                return cachedResult;
+            }
+            // 使用隊列來限制並發請求
+            return new Promise((resolve, reject) => {
+                this.requestQueue = this.requestQueue.then(() => __awaiter(this, void 0, void 0, function* () {
+                    try {
+                        const result = yield this.fetchPhotoUrl(dishName);
+                        resolve(result);
+                    }
+                    catch (error) {
+                        reject(error);
+                    }
+                }));
+            });
+        });
+    }
+    fetchPhotoUrl(dishName) {
+        return __awaiter(this, void 0, void 0, function* () {
             const encodedDishName = encodeURIComponent(dishName.trim());
             const url = `${this.googleSearchDomain}?key=${this.googleSearchApiKey}&cx=${this.googleSearchEngineId}&q=${encodedDishName}&searchType=image`;
+            console_1.default.log('請求的 URL:', url);
             try {
                 const response = yield this.makeRequestWithRetry(url);
                 const imagesResults = response.data.items
@@ -49,9 +75,11 @@ let PhotoController = class PhotoController {
                     original: x.link,
                     queryString: dishName,
                 }));
+                console_1.default.log('過濾後的圖片結果:', imagesResults);
                 if (imagesResults && imagesResults.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * Math.min(10, imagesResults.length));
-                    return imagesResults[randomIndex].original;
+                    const result = imagesResults[0].original;
+                    this.cache.set(dishName, result);
+                    return result;
                 }
                 else {
                     console_1.default.log('未找到相關圖片');
@@ -84,8 +112,9 @@ let PhotoController = class PhotoController {
                     if (axios_1.default.isAxiosError(error)) {
                         const axiosError = error;
                         if (axiosError.response && axiosError.response.status === 429) {
-                            // Rate limit exceeded, wait before retrying
-                            yield new Promise((resolve) => (0, timers_1.setTimeout)(resolve, 2000));
+                            // 使用指數退避策略
+                            const delay = Math.pow(2, i) * 1000;
+                            yield new Promise((resolve) => (0, timers_1.setTimeout)(resolve, delay));
                         }
                     }
                     console_1.default.warn(`請求失敗，正在重試 (${i + 1}/${retries})...`);

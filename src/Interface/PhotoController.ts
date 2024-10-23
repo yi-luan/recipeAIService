@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import console from 'console';
+import NodeCache from 'node-cache';
 import process from 'process';
 import { setTimeout } from 'timers';
 import { Get, Route, Tags } from 'tsoa';
@@ -10,11 +11,15 @@ export class PhotoController {
 	private googleSearchApiKey: string;
 	private googleSearchEngineId: string;
 	private googleSearchDomain: string;
+	private cache: NodeCache;
+	private requestQueue: Promise<any>;
 
 	constructor() {
 		this.googleSearchApiKey = process.env.Google_Search_API_Key || '';
 		this.googleSearchEngineId = process.env.SearchEngineId || '';
 		this.googleSearchDomain = process.env.GooogleSearchDomain || '';
+		this.cache = new NodeCache({ stdTTL: 3600 }); // 緩存 1 小時
+		this.requestQueue = Promise.resolve();
 
 		if (!this.googleSearchApiKey || !this.googleSearchEngineId || !this.googleSearchDomain) {
 			console.error('缺少必要的環境變量設置');
@@ -24,9 +29,31 @@ export class PhotoController {
 	@Get('/dishPhoto/{dishName}')
 	async getPhotoByDishName(dishName: string): Promise<string> {
 		console.log('接收到的 dishName:', dishName);
+
+		// 檢查緩存
+		const cachedResult = this.cache.get<string>(dishName);
+		if (cachedResult) {
+			console.log('從緩存返回結果:', dishName);
+			return cachedResult;
+		}
+
+		// 使用隊列來限制並發請求
+		return new Promise((resolve, reject) => {
+			this.requestQueue = this.requestQueue.then(async () => {
+				try {
+					const result = await this.fetchPhotoUrl(dishName);
+					resolve(result);
+				} catch (error) {
+					reject(error);
+				}
+			});
+		});
+	}
+
+	private async fetchPhotoUrl(dishName: string): Promise<string> {
 		const encodedDishName = encodeURIComponent(dishName.trim());
 		const url = `${this.googleSearchDomain}?key=${this.googleSearchApiKey}&cx=${this.googleSearchEngineId}&q=${encodedDishName}&searchType=image`;
-
+		console.log('請求的 URL:', url);
 		try {
 			const response = await this.makeRequestWithRetry(url);
 			const imagesResults = response.data.items
@@ -35,10 +62,11 @@ export class PhotoController {
 					original: x.link,
 					queryString: dishName,
 				}));
-
+			console.log('過濾後的圖片結果:', imagesResults);
 			if (imagesResults && imagesResults.length > 0) {
-				const randomIndex = Math.floor(Math.random() * Math.min(10, imagesResults.length));
-				return imagesResults[randomIndex].original;
+				const result = imagesResults[0].original;
+				this.cache.set(dishName, result);
+				return result;
 			} else {
 				console.log('未找到相關圖片');
 				return this.getDefaultImageUrl();
@@ -67,8 +95,9 @@ export class PhotoController {
 				if (axios.isAxiosError(error)) {
 					const axiosError = error as AxiosError;
 					if (axiosError.response && axiosError.response.status === 429) {
-						// Rate limit exceeded, wait before retrying
-						await new Promise((resolve) => setTimeout(resolve, 2000));
+						// 使用指數退避策略
+						const delay = Math.pow(2, i) * 1000;
+						await new Promise((resolve) => setTimeout(resolve, delay));
 					}
 				}
 				console.warn(`請求失敗，正在重試 (${i + 1}/${retries})...`);

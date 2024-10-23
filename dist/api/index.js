@@ -49,7 +49,7 @@ const app = (0, express_1.default)();
 const port = process_1.default.env.PORT || 3001;
 // 全局中間件
 app.use((0, cors_1.default)({
-    origin: ['https://recipe-ai-gray.vercel.app', 'http://localhost:3000'],
+    origin: ['https://recipe-ai-gray.vercel.app', 'http://localhost:5173'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true, // 允許發送認證信息（如 cookies）

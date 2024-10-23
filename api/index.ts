@@ -16,7 +16,7 @@ const port = process.env.PORT || 3001;
 // 全局中間件
 app.use(
 	cors({
-		origin: ['https://recipe-ai-gray.vercel.app', 'http://localhost:3000'], // 允許的前端域名
+		origin: ['https://recipe-ai-gray.vercel.app', 'http://localhost:5173'], // 允許的前端域名
 		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // 允許的 HTTP 方法
 		allowedHeaders: ['Content-Type', 'Authorization'], // 允許的請求頭
 		credentials: true, // 允許發送認證信息（如 cookies）
