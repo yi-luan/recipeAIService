@@ -21,7 +21,7 @@ export class RecipeController {
 				throw new Error('Gemini API 密鑰未設置');
 			}
 			const genAI = new GoogleGenerativeAI(this.geminiApiKey);
-			const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+			const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
 			const chat = model.startChat({
 				history: [
