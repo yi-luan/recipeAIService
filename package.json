@@ -4,8 +4,8 @@
 	"description": "RecipeAI 後端服務",
 	"main": "api/index.ts",
 	"scripts": {
-		"start": "cross-env PORT=3001 node dist/main.js",
-		"dev": "tsoa spec-and-routes && tsc && nodemon --exec \"node -r dotenv/config --inspect\" dist/main.js",
+		"start": "cross-env PORT=3001 node dist/api/index.js",
+		"dev": "tsoa spec-and-routes && tsc && nodemon --exec \"node -r dotenv/config --inspect\" dist/api/index.js",
 		"build": "tsc && tsoa spec-and-routes",
 		"lint": "eslint . --ext .ts",
 		"test": "jest",

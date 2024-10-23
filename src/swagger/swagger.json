@@ -138,7 +138,14 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/Photo"
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/Photo"
+										},
+										{
+											"type": "string"
+										}
+									]
 								}
 							}
 						}
